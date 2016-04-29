@@ -112,7 +112,7 @@ def main(cfg_file_path):
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
 
-    logging.debug('Connecting to database...')
+    logging.info('Connecting to database...')
     try:
         from .iodef import get_iodef, save
 
@@ -124,7 +124,7 @@ def main(cfg_file_path):
         logging.exception('Unable to connect to database.')
         raise
 
-    logging.debug('Query database...')
+    logging.info('Query database...')
     try:
         rows = session.query(announce2GISAC).filter(
             announce2GISAC.responseID == '0',
@@ -141,7 +141,7 @@ def main(cfg_file_path):
         for each_row in rows:
             file_name_list.append(each_row.publishID)
 
-        logging.debug('Retrieveing iodef files...')
+        logging.info('Retrieveing iodef files...')
         try:
             file_data_dict = get_iodef(
                 file_name_list,
@@ -154,7 +154,7 @@ def main(cfg_file_path):
             logging.exception('Unable to retrieve iodef files.')
             raise
 
-        logging.debug('Writing iodef to local tmp...')
+        logging.info('Writing iodef to local tmp...')
         try:
             for each_filename in file_data_dict.keys():
                 save(
@@ -165,7 +165,7 @@ def main(cfg_file_path):
             logging.exception('Unable to connect to database.')
             raise
 
-        logging.debug('Generating GISAC Client...')
+        logging.info('Generating GISAC Client...')
 
         try:
             jnius_extrakwargs = {
@@ -190,10 +190,9 @@ def main(cfg_file_path):
             logging.exception('Unable to generate client_jnius.')
             raise
 
-        logging.debug('Senging iodef...')
+        logging.info('Senging iodef...')
         result_dict = dict()
         for each_row in rows:
-            result = None
             try:
                 iodefTypeId = each_row.typeId
                 intelligenceTypeId = each_row.type
@@ -214,13 +213,15 @@ def main(cfg_file_path):
                 result_dict[file_name] = result
 
                 try:
-                    if result is not None:
-                        if config['16HOTFIX'].getboolean(
-                                'db_result_write_back',
-                                fallback=False,
-                        ):
-                            each_row.responseNumber = result[0]
-                            each_row.responseID = result[1]
+                    if config['16HOTFIX'].getboolean(
+                            'db_result_write_back',
+                            fallback=False,
+                    ):
+                        each_row.responseNumber = result[0]
+                        each_row.responseID = result[1]
+                        logging.info(
+                            '{} write back result success.'.format(file_name)
+                        )
                 except Exception as e:
                     logging.exception('Unable to writeback to database.')
                     raise
@@ -232,18 +233,18 @@ def main(cfg_file_path):
                 'db_result_write_back',
                 fallback=False,
         ):
-            logging.debug('Writing back to database...')
+            logging.info('Writing back to database...')
             try:
                 session.commit()
             except Exception as e:
                 logging.exception('Unable to commit.')
                 raise
         else:
-            logging.debug('Not writing back to database...')
+            logging.info('Not writing back to database...')
             try:
                 session.rollback()
             except Exception as e:
                 logging.exception('Unable to rollback databae.')
                 raise
     else:
-        logging.debug('No data required for sending.')
+        logging.info('No data required for sending.')
