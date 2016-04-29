@@ -111,7 +111,6 @@ def main(cfg_file_path):
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
-    logging.getLogger().addHandler(logging.StreamHandler())
 
     logging.debug('Connecting to database...')
     try:
