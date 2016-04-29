@@ -219,6 +219,7 @@ def main(cfg_file_path):
                     ):
                         each_row.responseNumber = result[0]
                         each_row.responseID = result[1]
+                        session.commit()
                         logging.info(
                             '{} write back result success.'.format(file_name)
                         )
@@ -229,17 +230,10 @@ def main(cfg_file_path):
                 logging.exception('Unable to handle one of row.')
                 raise
 
-        if config['16HOTFIX'].getboolean(
+        if not config['16HOTFIX'].getboolean(
                 'db_result_write_back',
                 fallback=False,
         ):
-            logging.info('Writing back to database...')
-            try:
-                session.commit()
-            except Exception as e:
-                logging.exception('Unable to commit.')
-                raise
-        else:
             logging.info('Not writing back to database...')
             try:
                 session.rollback()
