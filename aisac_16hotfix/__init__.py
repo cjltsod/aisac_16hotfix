@@ -1,5 +1,6 @@
 import configparser
 import datetime
+import psutil
 import logging
 import os
 
@@ -48,6 +49,11 @@ def handle_config(cfg_file_path):
         config['16HOTFIX']['logging_fmt'] = \
             '%%(asctime)s [%%(threadName)-12.12s][%%(levelname)-5.5s]' \
             ' %%(message)s'
+    if 'pid_file' not in config['16HOTFIX'].keys():
+        config['16HOTFIX']['pid_file'] = '{}/16hotfix.pid'.format(cwd)
+    if 'timeout' not in config['16HOTFIX'].keys():
+        config['16HOTFIX']['timeout'] = '3600'
+
     if 'account' not in config['GISAC'].keys():
         config['GISAC']['account'] = 'AISAC'
     if 'pwd' not in config['GISAC'].keys():
@@ -111,6 +117,36 @@ def main(cfg_file_path):
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
+
+    logging.info('Loading PID file...')
+    pid = None
+    try:
+        with open(config['16HOTFIX']['pid_file'], 'r') as f:
+            pid = int(f.read())
+    except Exception as e:
+        logging.info('No PID file found.')
+
+    if pid:
+        if psutil.pid_exists(pid):
+            logging.warning('There\'s another instance running... PID({}).'.format(pid))
+            proc = psutil.Process(pid)
+            delta = datetime.datetime.now() - datetime.datetime.fromtimestamp(proc.create_time())
+            if delta > datetime.timedelta(seconds=int(config['16HOTFIX']['timeout'])):
+                logging.warning('Terminating... PID({}).'.format(pid))
+                proc.terminate()
+                gone, alive = psutil.wait_procs([proc], timeout=10)
+                for p in alive:
+                    logging.warning('Still alive. Killing... PID({}).'.format(pid))
+                    p.kill()
+            else:
+                logging.warning('Target process PID({}) not timeout, terminate myself.'.format(pid))
+                return
+
+    with open(config['16HOTFIX']['pid_file'], 'w') as f:
+        f.write(str(os.getpid()))
+
+    import time
+    time.sleep(20)
 
     logging.info('Connecting to database...')
     try:
@@ -242,3 +278,6 @@ def main(cfg_file_path):
                 raise
     else:
         logging.info('No data required for sending.')
+
+    logging.info('Removing pid file...')
+    os.remove(config['16HOTFIX']['pid_file'])

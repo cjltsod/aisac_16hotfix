@@ -14,6 +14,7 @@ setup(
         'suds-py3',
         'mysqlclient',
         'paramiko',
+        'psutil',
         # 'pyjnius',
     ],
     dependency_links=[
