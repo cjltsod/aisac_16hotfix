@@ -129,7 +129,13 @@ def main(cfg_file_path):
 
         logging.debug('Retrieveing iodef files...')
         try:
-            file_data_dict = get_iodef(file_name_list)
+            file_data_dict = get_iodef(
+                file_name_list,
+                server=config['SSH']['server'], port=config['SSH']['port'],
+                username=config['SSH']['username'],
+                password=config['SSH']['password'],
+                file_locate=config['SSH']['file_locate'],
+            )
         except Exception as e:
             logging.exception('Unable to retrieve iodef files.')
             raise
