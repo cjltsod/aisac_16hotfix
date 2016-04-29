@@ -15,6 +15,7 @@ def handle_config(cfg_file_path):
 
     try:
         config.read(cfg_file_path)
+        print('Parsing config \'{}\'...Done'.format(cfg_file_path))
     except:
         print('Config file not found, regenerating...')
 
@@ -43,7 +44,10 @@ def handle_config(cfg_file_path):
     if 'logging_file_fmt' not in config['16HOTFIX'].keys():
         config['16HOTFIX']['logging_file_fmt'] = \
             '{}/log/%%Y-%%m-%%d.log'.format(cwd)
-
+    if 'logging_fmt' not in config['16HOTFIX'].keys():
+        config['16HOTFIX']['logging_fmt'] = \
+            '%%(asctime)s [%%(threadName)-12.12s][%%(levelname)-5.5s]' \
+            ' %%(message)s'
     if 'account' not in config['GISAC'].keys():
         config['GISAC']['account'] = 'AISAC'
     if 'pwd' not in config['GISAC'].keys():
@@ -87,16 +91,27 @@ def handle_config(cfg_file_path):
 
 def main(cfg_file_path):
     config = handle_config(cfg_file_path)
-    logging.basicConfig(
-        level=logging._nameToLevel.get(
+
+    logFormatter = logging.Formatter(
+        config['16HOTFIX']['logging_fmt'],
+        datefmt=config['16HOTFIX']['logging_date_fmt'],
+    )
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(
+        logging._nameToLevel.get(
             config['16HOTFIX']['logging_level'],
             logging.INFO,
-        ),
-        datefmt=config['16HOTFIX']['logging_date_fmt'],
-        filename=datetime.datetime.now().strftime(
-            config['16HOTFIX']['logging_file_fmt'],
-        ),
+        )
     )
+    fileHandler = logging.FileHandler(
+        datetime.datetime.now().strftime(config['16HOTFIX']['logging_file_fmt'])
+    )
+    fileHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(fileHandler)
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+    logging.getLogger().addHandler(logging.StreamHandler())
 
     logging.debug('Connecting to database...')
     try:
