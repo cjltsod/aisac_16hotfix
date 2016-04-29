@@ -68,21 +68,21 @@ def send(
                 key=key_path,
             ),
         )
-    except:
-        logging.error('Exception when connecting to server.')
-        logging.error(traceback.format_exc())
+    except Exception as e:
+        logging.exception('Exception when connecting to server.')
         raise
 
     try:
         with open(filepath, 'rb') as f:
             doc = base64.b64encode(f.read()).decode()
-    except:
-        logging.error('Exception when reading iodef.')
+    except Exception as e:
+        logging.exception('Exception when reading iodef.')
+        raise
 
     try:
         checksum = md5sum(filepath)
-    except:
-        logging.error('Exception when calculating md5sum.')
+    except Exception as e:
+        logging.exception('Exception when calculating md5sum.')
         raise
 
     try:
@@ -95,9 +95,8 @@ def send(
             doc=doc,
             checksum=checksum,
         )
-    except:
-        logging.error('Exception when sending to server.')
-        logging.error(traceback.format_exc())
+    except Exception as e:
+        logging.exception('Exception when sending to server.')
         raise
 
     return response
