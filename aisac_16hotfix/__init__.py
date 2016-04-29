@@ -145,9 +145,6 @@ def main(cfg_file_path):
     with open(config['16HOTFIX']['pid_file'], 'w') as f:
         f.write(str(os.getpid()))
 
-    import time
-    time.sleep(20)
-
     logging.info('Connecting to database...')
     try:
         from .iodef import get_iodef, save
