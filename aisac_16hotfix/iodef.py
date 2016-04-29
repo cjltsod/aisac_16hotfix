@@ -21,10 +21,10 @@ def get_iodef(
     client.set_missing_host_key_policy(AutoAddPolicy())
 
     logging.debug('Connecting to ssh {}@{}:{}...'.format(
-        username, server, port,
+        username, server, int(port),
     ))
     client.connect(
-        server, port=port, username=username, password=password,
+        server, port=int(port), username=username, password=password,
         timeout=5,
     )
 

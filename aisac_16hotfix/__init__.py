@@ -68,12 +68,12 @@ def handle_config(cfg_file_path):
     if 'server' not in config['SSH'].keys():
         config['SSH']['server'] = '140.117.101.15'
     if 'port' not in config['SSH'].keys():
-        config['SSH']['PORT'] = 22
+        config['SSH']['PORT'] = '22'
     if 'username' not in config['SSH'].keys():
         config['SSH']['username'] = 'root'
     if 'password' not in config['SSH'].keys():
         config['SSH']['password'] = 'SSH_PASSWORD_HERE'
-    if 'file_locate' not in config['file_locate']:
+    if 'file_locate' not in config['SSH']:
         config['SSH']['file_locate'] = '/etc/iodef/{}/{}.xml'
 
     try:
